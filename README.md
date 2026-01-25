@@ -8,7 +8,7 @@ This tool provides a "naked" look at market structure, stripping away retail noi
 
 ## Interface
 
-![Terminal Interface](Demo.png)
+![Terminal Interface](Sample.png)
 *Real-time analytics dashboard displaying Net Gamma Ladder, Volatility Oracle Cones, and Volume-Weighted Average Price (VWAP) structure.*
 
 ---
