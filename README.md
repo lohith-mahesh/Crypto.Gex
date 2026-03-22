@@ -11,7 +11,7 @@ A high-performance analytics environment designed for real-time monitoring of De
 The engine calculates the dollar value of the underlying asset that option dealers must hedge per 1% move in the spot price. This identifies "Gamma Walls" where dealer hedging activity either dampens or accelerates price volatility.
 
 **Standard GEX Equation:**
-$$\text{GEX} = \Gamma \times \text{Open Interest} \times \text{Spot}^2 \times 0.01$$
+`GEX = Γ × Open Interest × Spot² × 0.01`
 
 The terminal aggregates Net GEX across all active strikes, providing a visual heatmap of support (Positive GEX) and resistance (Negative GEX) zones.
 
@@ -19,15 +19,15 @@ The terminal aggregates Net GEX across all active strikes, providing a visual he
 
 Unlike standard front-end implementations, this terminal executes a closed-form Black-Scholes-Merton model on the backend to ensure precision and low-latency updates. 
 
-* **State Estimation:** The model calculates $d_1$ and $d_2$ to derive Delta ($\Delta$), Gamma ($\Gamma$), Theta ($\Theta$), and Vega ($\nu$) for every instrument in the Deribit universe.
-* **Risk-Free Dynamics:** Incorporates a dynamic risk-free rate ($r$), default 5%, to account for the cost of carry in crypto-native margin environments.
+* **State Estimation:** The model calculates d1 and d2 to derive Delta (Δ), Gamma (Γ), Theta (Θ), and Vega (ν) for every instrument in the Deribit universe.
+* **Risk-Free Dynamics:** Incorporates a dynamic risk-free rate (r), default 5%, to account for the cost of carry in crypto-native margin environments.
 
 ### 3. Oracle 1-Sigma Range Projection
 
-The system utilizes a weighted Implied Volatility ($\sigma$) metric to project the expected move for the current session based on time to expiry ($T$).
+The system utilizes a weighted Implied Volatility (σ) metric to project the expected move for the current session based on time to expiry (T).
 
 **Expected Move Formula:**
-$$\text{Move}_{1\sigma} = \text{Spot} \times \sigma_{\text{avg}} \times \sqrt{T}$$
+`1σ Move = Spot × Average σ × √(T)`
 
 This provides a "Volatility Cone" on the chart, identifying where the market is pricing a 68% probability of price containment.
 
@@ -44,9 +44,9 @@ This metric serves as a secondary "Center of Gravity" for price action as expira
 The system calculates the Volume-Weighted Average Price (Strike) to identify the center of gravity for today’s trading activity.
 
 **Strike VWAP Calculation:**
-$$\text{VWAP}_{\text{strike}} = \frac{\sum (K_i \times V_i)}{\sum V_i}$$
+`Strike VWAP = Σ(Strike × Volume) / Σ(Volume)`
 
-This identifies whether the current day's volume is concentrating at OTM (Out-of-the-Money) strikes ($K$) or ITM (In-the-Money) directional hedging.
+This identifies whether the current day's volume is concentrating at OTM (Out-of-the-Money) strikes (K) or ITM (In-the-Money) directional hedging.
 
 ## Data Pipeline & Rigor
 
@@ -58,7 +58,7 @@ The scanner utilizes an asynchronous WebSocket loop to fetch market data from De
 
 To maintain signal integrity, the engine applies strict filtering protocols:
 * **Moneyness Filter:** Only strikes within a 20% to 250% range of the spot price are processed to remove illiquid "dust" strikes.
-* **Temporal Filter:** Expired or near-instantaneous expiries ($T \approx 0$) are discarded to prevent Gamma spikes from distorting the aggregate GEX profile.
+* **Temporal Filter:** Expired or near-instantaneous expiries (T ≈ 0) are discarded to prevent Gamma spikes from distorting the aggregate GEX profile.
 
 ## Logic Stack
 
