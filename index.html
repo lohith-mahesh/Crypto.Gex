@@ -7,58 +7,44 @@
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #ccc; font-family: 'JetBrains Mono', monospace; overflow: hidden; }
+        body { background: #000; color: #ccc; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; }
         .grid-layout { display: grid; grid-template-columns: 260px 1fr 320px; grid-template-rows: 50px 1fr 30px; height: 100vh; }
-        .header { grid-column: 1/-1; border-bottom: 1px solid #222; background: #080808; display: flex; align-items: center; px: 20px; }
+        .header, .footer { grid-column: 1/-1; background: #080808; display: flex; align-items: center; padding: 0 20px; }
+        .header { border-bottom: 1px solid #222; justify-content: space-between; }
+        .footer { border-top: 1px solid #222; justify-content: flex-end; font-size: 10px; }
         .panel { background: #0a0a0a; border-color: #222; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
-        .panel-l { border-right: 1px solid #222; }
-        .panel-r { border-left: 1px solid #222; }
-        .footer { grid-column: 1/-1; border-top: 1px solid #222; background: #080808; display: flex; align-items: center; justify-content: flex-end; px: 20px; font-size: 10px; }
+        .panel-l { border-right: 1px solid #222; } .panel-r { border-left: 1px solid #222; }
         .card { background: #111; border: 1px solid #222; padding: 15px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         .card-label { font-size: 10px; font-weight: bold; color: #666; margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 1px; width: fit-content; border-bottom: 1px dashed #333; cursor: help; }
         .val-large { font-size: 26px; font-weight: bold; color: #fff; letter-spacing: -1px; line-height: 1; }
-        .cmd-input { background: #000; border: 1px solid #333; color: #fff; padding: 6px 12px; width: 140px; text-transform: uppercase; outline: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .cmd-input:focus { border-color: #3b82f6; } 
-        .expiry-select { background: #000; border: 1px solid #333; color: #fff; padding: 6px 12px; font-family: 'JetBrains Mono'; font-weight: bold; outline: none; border-radius: 4px; cursor: pointer; }
-        .expiry-select:hover { border-color: #3b82f6; }
+        .cmd-input, .expiry-select { background: #000; border: 1px solid #333; color: #fff; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; outline: none; }
+        .cmd-input { width: 140px; text-transform: uppercase; } .expiry-select { font-family: 'JetBrains Mono'; }
+        .cmd-input:focus, .expiry-select:hover { border-color: #3b82f6; }
         .table-container { width: 100%; overflow-y: auto; overflow-x: hidden; }
         .fixed-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
         .truncate-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 0; } 
         [data-tooltip] { position: relative; }
-        [data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            background: #000; color: #eee; border: 1px solid #444;
-            padding: 6px 10px; font-size: 10px; z-index: 100;
-            opacity: 0; pointer-events: none; transition: opacity 0.1s;
-            width: max-content; max-width: 220px; white-space: normal;
-            visibility: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
-        }
+        [data-tooltip]::after { content: attr(data-tooltip); position: absolute; background: #000; color: #eee; border: 1px solid #444; padding: 6px 10px; font-size: 10px; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.1s; width: max-content; max-width: 220px; white-space: normal; visibility: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
         [data-tooltip]:hover::after { opacity: 1; visibility: visible; }
-        .panel-l [data-tooltip]::after { top: 100%; left: 0; margin-top: 5px; }
-        .panel-r [data-tooltip]::after { top: 100%; right: 0; margin-top: 5px; }
+        .panel-l [data-tooltip]::after, .panel-r [data-tooltip]::after { top: 100%; margin-top: 5px; }
+        .panel-l [data-tooltip]::after { left: 0; } .panel-r [data-tooltip]::after { right: 0; }
         .header [data-tooltip]::after { top: 120%; left: 50%; transform: translateX(-50%); }
         .legend-box { display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #0f0f0f; border: 1px solid #222; font-size: 10px; border-radius: 4px; }
         .legend-item { display: flex; align-items: center; gap: 8px; color: #888; cursor: help; }
         .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #000; } ::-webkit-scrollbar-thumb { background: #333; }
     </style>
 </head>
 <body>
 
 <div class="grid-layout">
-    <div class="header justify-between">
+    <div class="header">
         <div class="flex items-center gap-4">
             <span class="font-bold text-white text-xl tracking-tighter" data-tooltip="Crypto.GEX Terminal">CRYPTO<span class="text-blue-500 text-xs tracking-widest font-mono">.GEX</span></span>
             <div class="h-8 w-px bg-gray-800"></div>
             <select id="ticker-select" class="cmd-input" onchange="updateTicker(this.value)" data-tooltip="Select Asset">
                 <option value="" disabled selected>TICKER</option>
-                <option value="BTC">BTC</option>
-                <option value="ETH">ETH</option>
-                <option value="SOL">SOL</option>
+                <option value="BTC">BTC</option><option value="ETH">ETH</option><option value="SOL">SOL</option>
             </select>
             <select id="expiry-dd" class="expiry-select" onchange="render()" data-tooltip="Filter Option Chain by Expiration"><option value="ALL">ALL EXPIRIES</option></select>
         </div>
@@ -66,30 +52,15 @@
     </div>
 
     <div class="panel panel-l">
-        <div class="card">
-            <span class="card-label" data-tooltip="Current market price from Deribit Index">SPOT PRICE</span>
-            <div id="val-spot" class="val-large text-white">---</div>
-        </div>
+        <div class="card"><span class="card-label" data-tooltip="Current market price from Deribit Index">SPOT PRICE</span><div id="val-spot" class="val-large text-white">---</div></div>
         <div class="card bg-gray-900 border-gray-800">
             <span class="card-label text-white opacity-60" data-tooltip="Volume Weighted Average Price (Strike). The 'Center of Gravity' for today's volume.">VOLUME STRUCTURE</span>
-            <div class="flex justify-between text-xs mt-2 border-b border-gray-800 pb-1">
-                <span class="text-gray-500" data-tooltip="Chain VWAP">VWAP</span>
-                <span id="val-vwap" class="text-white font-bold">---</span>
-            </div>
+            <div class="flex justify-between text-xs mt-2 border-b border-gray-800 pb-1"><span class="text-gray-500" data-tooltip="Chain VWAP">VWAP</span><span id="val-vwap" class="text-white font-bold">---</span></div>
             <div class="text-[10px] text-gray-500 mt-2">Purple Line on Chart</div>
         </div>
-        <div class="card">
-            <span class="card-label" data-tooltip="1-Standard Deviation Move based on Implied Volatility.">ORACLE 1σ RANGE</span>
-            <div id="val-oracle" class="val-large text-white">---</div>
-        </div>
-        <div class="card">
-            <span class="card-label" data-tooltip="Strike where option writers lose least money.">MAX PAIN</span>
-            <div id="val-maxpain" class="val-large text-white">---</div>
-        </div>
-        <div class="card">
-            <span class="card-label" data-tooltip="Put/Call Ratio. >1 Bearish, <0.7 Bullish.">SENTIMENT (PCR)</span>
-            <div id="val-pcr" class="val-large text-white">---</div>
-        </div>
+        <div class="card"><span class="card-label" data-tooltip="1-Standard Deviation Move based on Implied Volatility.">ORACLE 1σ RANGE</span><div id="val-oracle" class="val-large text-white">---</div></div>
+        <div class="card"><span class="card-label" data-tooltip="Strike where option writers lose least money.">MAX PAIN</span><div id="val-maxpain" class="val-large text-white">---</div></div>
+        <div class="card"><span class="card-label" data-tooltip="Put/Call Ratio. >1 Bearish, <0.7 Bullish.">SENTIMENT (PCR)</span><div id="val-pcr" class="val-large text-white">---</div></div>
     </div>
 
     <div class="bg-black relative flex flex-col justify-center items-center overflow-hidden">
@@ -110,18 +81,11 @@
             </div>
         </div>
         <div class="card flex-1 flex flex-col overflow-hidden p-0">
-            <div class="p-3 border-b border-222 bg-111 flex justify-between items-center">
-                <span class="card-label mb-0" data-tooltip="Net Gamma Exposure per Strike">NET GEX</span>
-                <span class="text-[9px] text-gray-500" data-tooltip="Relative Volume Intensity">VOL INTEG.</span>
-            </div>
+            <div class="p-3 border-b border-222 bg-111 flex justify-between items-center"><span class="card-label mb-0" data-tooltip="Net Gamma Exposure per Strike">NET GEX</span><span class="text-[9px] text-gray-500" data-tooltip="Relative Volume Intensity">VOL INTEG.</span></div>
             <div class="flex-1 table-container custom-scroll">
                 <table class="fixed-table text-[10px]">
                     <thead class="text-gray-500 sticky top-0 bg-[#111] font-bold">
-                        <tr>
-                            <th class="text-left py-2 pl-3 w-[35%] truncate-cell">STRIKE</th>
-                            <th class="text-right py-2 pr-2 w-[45%] truncate-cell">NET</th>
-                            <th class="w-[20%]"></th>
-                        </tr>
+                        <tr><th class="text-left py-2 pl-3 w-[35%] truncate-cell">STRIKE</th><th class="text-right py-2 pr-2 w-[45%] truncate-cell">NET</th><th class="w-[20%]"></th></tr>
                     </thead>
                     <tbody id="ladder"></tbody>
                 </table>
@@ -132,147 +96,97 @@
 </div>
 
 <script>
-    const RISK_FREE_RATE = 0.05;
-    const pdf = (x) => Math.exp(-0.5 * x * x) / (Math.sqrt(2 * Math.PI));
+    const $ = id => document.getElementById(id);
+    const RISK_FREE_RATE = 0.05, pdf = x => Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+    let ws = null, masterData = null;
+
     function calcGEX(S, K, T, iv, r, oi) {
         if(T<=0) return 0;
         const d1 = (Math.log(S/K) + (r + 0.5*iv*iv)*T) / (iv*Math.sqrt(T));
         return (pdf(d1)/(S*iv*Math.sqrt(T))) * oi * S * S * 0.01;
     }
 
-    let ws = null, masterData = null;
-
     function init() {
         ws = new WebSocket(`ws://${window.location.host}/ws`);
-        ws.onopen = () => {
-            document.getElementById('status').innerText = "ONLINE";
-            document.getElementById('status').className = "text-[10px] font-bold text-green-500";
-        };
-        ws.onclose = () => {
-            document.getElementById('status').innerText = "OFFLINE";
-            document.getElementById('status').className = "text-[10px] font-bold text-red-500";
-        };
-        ws.onmessage = (e) => {
+        ws.onopen = () => { $('status').innerText = "ONLINE"; $('status').className = "text-[10px] font-bold text-green-500"; };
+        ws.onclose = () => { $('status').innerText = "OFFLINE"; $('status').className = "text-[10px] font-bold text-red-500"; };
+        ws.onmessage = e => {
             const msg = JSON.parse(e.data);
             if (msg.type === "data") {
-                masterData = msg.payload;
-                populateExpiries(masterData.chain);
-                document.getElementById('msg-box').classList.add('hidden');
-                document.getElementById('chart').classList.remove('opacity-30');
-                render();
-            }
-            if (msg.type === "error") {
-                document.getElementById('msg-box').innerText = msg.msg;
-                document.getElementById('msg-box').classList.remove('hidden');
+                masterData = msg.payload; populateExpiries(masterData.chain);
+                $('msg-box').classList.add('hidden'); $('chart').classList.remove('opacity-30'); render();
+            } else if (msg.type === "error") {
+                $('msg-box').innerText = msg.msg; $('msg-box').classList.remove('hidden');
             }
         };
     }
 
     function updateTicker(val) {
-        if (ws && ws.readyState === WebSocket.OPEN) {
+        if (ws?.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({action: "sub", ticker: val}));
-            document.getElementById('msg-box').innerText = "CALCULATING...";
-            document.getElementById('expiry-dd').innerHTML = '<option value="ALL">ALL EXPIRIES</option>';
-        } else {
-            init();
-            setTimeout(() => updateTicker(val), 500);
-        }
+            $('msg-box').innerText = "CALCULATING..."; $('expiry-dd').innerHTML = '<option value="ALL">ALL EXPIRIES</option>';
+        } else { init(); setTimeout(() => updateTicker(val), 500); }
     }
 
     function populateExpiries(chain) {
-        const dd = document.getElementById('expiry-dd');
-        const current = dd.value;
-        const unique = [...new Set(chain.map(o => o.exp))].sort((a,b) => {
-            const monMap = {"JAN":1,"FEB":2,"MAR":3,"APR":4,"MAY":5,"JUN":6,"JUL":7,"AUG":8,"SEP":9,"OCT":10,"NOV":11,"DEC":12};
-            const parse = (s) => parseInt(s.slice(5))*10000 + monMap[s.slice(2,5)]*100 + parseInt(s.slice(0,2));
-            return parse(a) - parse(b);
-        });
+        const dd = $('expiry-dd'), current = dd.value, monMap = {"JAN":1,"FEB":2,"MAR":3,"APR":4,"MAY":5,"JUN":6,"JUL":7,"AUG":8,"SEP":9,"OCT":10,"NOV":11,"DEC":12};
+        const parse = s => parseInt(s.slice(5))*10000 + monMap[s.slice(2,5)]*100 + parseInt(s.slice(0,2));
+        const unique = [...new Set(chain.map(o => o.exp))].sort((a,b) => parse(a) - parse(b));
         dd.innerHTML = '<option value="ALL">ALL EXPIRIES</option>';
-        unique.forEach(d => { const opt = document.createElement("option"); opt.value=d; opt.text=d; dd.add(opt); });
+        unique.forEach(d => dd.add(new Option(d, d)));
         if(unique.includes(current)) dd.value = current;
     }
 
     function render() {
-        if(!masterData || !masterData.chain) return;
-        const selExp = document.getElementById('expiry-dd').value;
-        const chain = (selExp === 'ALL') ? masterData.chain : masterData.chain.filter(o => o.exp === selExp);
-        const S = masterData.spot;
-        const strikes = {};
-
+        if(!masterData?.chain) return;
+        const selExp = $('expiry-dd').value, S = masterData.spot, strikes = {};
+        const chain = selExp === 'ALL' ? masterData.chain : masterData.chain.filter(o => o.exp === selExp);
+        
         chain.forEach(o => {
-            const gex = calcGEX(S, o.k, o.t, o.iv, RISK_FREE_RATE, o.oi);
-            const safeGex = Number.isFinite(gex) ? gex : 0;
-            if(!strikes[o.k]) strikes[o.k] = {c:0, p:0, vol:0};
-            if(o.ty === 'C') strikes[o.k].c += safeGex; else strikes[o.k].p -= safeGex;
+            const gex = calcGEX(S, o.k, o.t, o.iv, RISK_FREE_RATE, o.oi), safeGex = Number.isFinite(gex) ? gex : 0;
+            strikes[o.k] ??= {c:0, p:0, vol:0};
+            o.ty === 'C' ? strikes[o.k].c += safeGex : strikes[o.k].p -= safeGex;
             strikes[o.k].vol += (o.vol || 0);
         });
 
-        const ks = Object.keys(strikes).map(Number).sort((a,b)=>a-b);
-        const nets = ks.map(k => strikes[k].c + strikes[k].p);
-        if(ks.length === 0) return;
+        const ks = Object.keys(strikes).map(Number).sort((a,b)=>a-b), nets = ks.map(k => strikes[k].c + strikes[k].p);
+        if(!ks.length) return;
 
-        document.getElementById('val-spot').innerText = "$" + S.toLocaleString(undefined, {maximumFractionDigits:2});
-        document.getElementById('val-maxpain').innerText = "$" + masterData.max_pain.toLocaleString();
-        
         let activeVWAP = masterData.vwap;
         if(selExp !== 'ALL') {
             const vVol = chain.reduce((a,b) => a + (b.vol||0), 0);
-            const vSum = chain.reduce((a,b) => a + (b.k * (b.vol||0)), 0);
-            activeVWAP = vVol > 0 ? vSum/vVol : 0;
+            activeVWAP = vVol > 0 ? chain.reduce((a,b) => a + (b.k * (b.vol||0)), 0)/vVol : 0;
         }
-        document.getElementById('val-vwap').innerText = "$" + activeVWAP.toLocaleString(undefined, {maximumFractionDigits:2});
 
-        const pcrVal = document.getElementById('val-pcr');
-        pcrVal.innerText = masterData.pcr;
-        pcrVal.className = "val-large text-white";
-
-        const avgT = (selExp === 'ALL') ? 7/365 : chain[0].t;
-        const move1SD = S * masterData.avg_iv * Math.sqrt(avgT);
-        document.getElementById('val-oracle').innerText = "+/- $" + move1SD.toLocaleString(undefined, {maximumFractionDigits:0});
-
-        const shapes = [
-            {type:'line', x0:S, x1:S, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#3b82f6', width:2, dash:'dash'}},
-            {type:'line', x0:masterData.max_pain, x1:masterData.max_pain, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#eab308', width:2, dash:'dot'}},
-            {type:'line', x0:activeVWAP, x1:activeVWAP, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#a855f7', width:2}},
-            {type:'rect', x0:S-move1SD, x1:S+move1SD, y0:0, y1:1, xref:'x', yref:'paper', fillcolor:'white', opacity:0.05, line:{width:0}},
-        ];
+        const avgT = selExp === 'ALL' ? 7/365 : chain[0].t, move1SD = S * masterData.avg_iv * Math.sqrt(avgT);
         
-        const rangeMin = S*0.7; const rangeMax = S*1.3;
-        const trace = {
-            x: ks, y: nets, type: 'bar', 
-            marker: {color: nets.map(n => n>0?'#22c55e':'#ef4444')},
-            hovertemplate: '<b>Strike: $%{x}</b><br>Net GEX: $%{y:.2s}<extra></extra>'
-        };
-        
-        const layout = {
-            paper_bgcolor: '#000', plot_bgcolor: '#000',
-            margin: {t:20,l:40,r:20,b:30}, showlegend: false,
-            xaxis: {gridcolor:'#222', range: [rangeMin, rangeMax], tickfont: {color: '#ccc'}}, 
-            yaxis: {gridcolor:'#222', tickfont: {color: '#ccc'}},
-            shapes: shapes,
-            hoverlabel: { bgcolor: "#000", font: { color: "#fff" }, bordercolor: "#555" }
-        };
-        Plotly.newPlot('chart', [trace], layout, {displayModeBar: false});
+        $('val-spot').innerText = "$" + S.toLocaleString(undefined, {maximumFractionDigits:2});
+        $('val-maxpain').innerText = "$" + masterData.max_pain.toLocaleString();
+        $('val-vwap').innerText = "$" + activeVWAP.toLocaleString(undefined, {maximumFractionDigits:2});
+        $('val-pcr').innerText = masterData.pcr; $('val-pcr').className = "val-large text-white";
+        $('val-oracle').innerText = "+/- $" + move1SD.toLocaleString(undefined, {maximumFractionDigits:0});
+
+        const rangeMin = S*0.7, rangeMax = S*1.3;
+        Plotly.newPlot('chart', [{ x: ks, y: nets, type: 'bar', marker: {color: nets.map(n => n>0?'#22c55e':'#ef4444')}, hovertemplate: '<b>Strike: $%{x}</b><br>Net GEX: $%{y:.2s}<extra></extra>' }], {
+            paper_bgcolor: '#000', plot_bgcolor: '#000', margin: {t:20,l:40,r:20,b:30}, showlegend: false,
+            xaxis: {gridcolor:'#222', range: [rangeMin, rangeMax], tickfont: {color: '#ccc'}}, yaxis: {gridcolor:'#222', tickfont: {color: '#ccc'}},
+            shapes: [
+                {type:'line', x0:S, x1:S, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#3b82f6', width:2, dash:'dash'}},
+                {type:'line', x0:masterData.max_pain, x1:masterData.max_pain, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#eab308', width:2, dash:'dot'}},
+                {type:'line', x0:activeVWAP, x1:activeVWAP, y0:0, y1:1, xref:'x', yref:'paper', line:{color:'#a855f7', width:2}},
+                {type:'rect', x0:S-move1SD, x1:S+move1SD, y0:0, y1:1, xref:'x', yref:'paper', fillcolor:'white', opacity:0.05, line:{width:0}}
+            ], hoverlabel: { bgcolor: "#000", font: { color: "#fff" }, bordercolor: "#555" }
+        }, {displayModeBar: false});
 
         const maxVol = Math.max(...ks.map(k => strikes[k].vol)) || 1;
-        const rows = ks.map((k,i) => ({k, n: nets[i], v: strikes[k].vol})).filter(r => r.k > rangeMin && r.k < rangeMax).sort((a,b)=>Math.abs(b.n)-Math.abs(a.n)).slice(0,30);
-        
-        document.getElementById('ladder').innerHTML = rows.map(r => {
-            const volIntensity = r.v / maxVol;
-            const volColor = volIntensity > 0.5 ? 'bg-white' : 'bg-gray-800'; 
-            return `
-            <tr class="border-b border-gray-900 hover:bg-gray-800 transition" data-tooltip="Strike: ${r.k} | Vol: ${r.v}">
+        $('ladder').innerHTML = ks.map((k,i) => ({k, n: nets[i], v: strikes[k].vol})).filter(r => r.k > rangeMin && r.k < rangeMax).sort((a,b)=>Math.abs(b.n)-Math.abs(a.n)).slice(0,30).map(r => 
+            `<tr class="border-b border-gray-900 hover:bg-gray-800 transition" data-tooltip="Strike: ${r.k} | Vol: ${r.v}">
                 <td class="text-white py-1 pl-3 font-mono text-xs font-bold truncate-cell">${r.k}</td>
-                <td class="text-right py-1 pr-3 font-mono text-xs truncate-cell ${r.n > 0 ? 'text-green-500' : 'text-red-500'}">
-                    ${r.n > 0 ? '+' : ''}${(r.n/1000000).toFixed(1)}M
-                </td>
-                <td class="pr-2 align-middle text-center">
-                    <div class="h-1.5 w-1.5 rounded-full ${volColor} inline-block" style="opacity: ${Math.max(0.3, volIntensity)}"></div>
-                </td>
-            </tr>`;
-        }).join('');
+                <td class="text-right py-1 pr-3 font-mono text-xs truncate-cell ${r.n > 0 ? 'text-green-500' : 'text-red-500'}">${r.n > 0 ? '+' : ''}${(r.n/1000000).toFixed(1)}M</td>
+                <td class="pr-2 align-middle text-center"><div class="h-1.5 w-1.5 rounded-full ${r.v/maxVol > 0.5 ? 'bg-white' : 'bg-gray-800'} inline-block" style="opacity: ${Math.max(0.3, r.v/maxVol)}"></div></td>
+            </tr>`
+        ).join('');
     }
-
     init();
 </script>
 </body>
