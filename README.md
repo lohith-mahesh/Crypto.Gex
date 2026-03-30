@@ -1,4 +1,4 @@
-# CRYPTO.GEX | Options Market Structure Terminal
+# Crypto.Gex | Options Market Structure Terminal
 
 This terminal provides real-time monitoring of Deribit options liquidity and volatility dynamics. It utilizes a hybrid-compute architecture to identify dealer positioning and price magnets across BTC, ETH, and SOL.
 
