@@ -14,7 +14,7 @@ import math
 
 # Configure logging at INFO level for system monitoring.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("CRYPTO-GEX")
+logger = logging.getLogger("Crypto-Gex")
 
 # Deribit public API base URL. Rate limit: 20 req/sec per IP.
 BASE_URL = "https://www.deribit.com/api/v2/public/"
@@ -158,7 +158,7 @@ class MarketData:
     async def start(self):
         # Initialize aiohttp session for connection pooling and latency reduction.
         if not self.session:
-            self.session = aiohttp.ClientSession(headers={"User-Agent": "CryptoGEX/2.0"})
+            self.session = aiohttp.ClientSession(headers={"User-Agent": "CryptoGex/2.0"})
 
     async def stop(self):
         if self.session: 
@@ -274,7 +274,7 @@ async def lifespan(app: FastAPI):
     yield
     await engine.stop()
 
-app = FastAPI(title="Crypto.GEX Terminal", lifespan=lifespan)
+app = FastAPI(title="Crypto.Gex Terminal", lifespan=lifespan)
 
 @app.websocket("/ws")
 async def ws_handler(websocket: WebSocket):
